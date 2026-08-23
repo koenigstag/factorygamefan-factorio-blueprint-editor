@@ -148,6 +148,15 @@ export interface FbeTestApi {
     /** How many tile sprites the canvas is drawing. See tests/tiles.spec.ts. */
     tileSpriteCount: () => number
     /**
+     * `Blueprint.createTiles`/`removeTiles`, the two model calls
+     * `PaintTileContainer` makes on a left and a right click. There is no
+     * route to tile paint mode a spec can drive that does not go through
+     * picking a tile out of the full inventory by slot position. See
+     * tests/blueprint-grid-position.spec.ts.
+     */
+    createTiles: (name: string, positions: { x: number; y: number }[]) => void
+    removeTiles: (positions: { x: number; y: number }[]) => void
+    /**
      * The blueprint string a copy would produce - `Book.serialize()` when a book
      * is loaded, which nothing else reaches. See tests/book-serialize.spec.ts.
      */

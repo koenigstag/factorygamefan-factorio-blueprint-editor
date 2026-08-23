@@ -301,6 +301,19 @@ const testApi = {
     */
     tileSpriteCount: () => editor.tileSpriteCount,
     /*
+        Paint and unpaint tiles on the loaded blueprint, straight through the
+        model calls `PaintTileContainer` makes on a left and a right click.
+        A spec cannot reach that container: no route to tile paint mode exists
+        that does not go through picking a tile out of the full inventory by
+        slot position, which depends on FD.inventoryLayout's ordering rather
+        than on anything the spec is testing. Same reason setEntityFilters and
+        setWagonInventory exist below - what needs driving here is the model
+        write and the event it emits, not the gesture that reaches it.
+    */
+    createTiles: (name: string, positions: { x: number; y: number }[]) =>
+        bp.createTiles(name, positions),
+    removeTiles: (positions: { x: number; y: number }[]) => bp.removeTiles(positions),
+    /*
         The keybinds that differ from their defaults, which is what
         importKeybinds was asked to apply and what exportKeybinds would persist.
         Empty means every action is on its default combo.

@@ -428,3 +428,50 @@ test("placing or deleting an entity while the dialog is open keeps Grid position
     const after = await gridPositionFields(page)
     expect(after).not.toEqual(before)
 })
+
+test("painting and unpainting a tile while the dialog is open keeps Grid position's display honest", async ({
+    page,
+}) => {
+    /*
+        The tile half of the test above, and the half that stayed live after
+        the first pass at that finding: `footprintData()` reads tiles as well
+        as entities, so a tile outside the current content moves what Grid
+        position reads - but `Blueprint` emitted `'create-tile'` and nothing
+        at all for a removal, so painting over the corner refreshed the box
+        and unpainting it left the old value showing. What is left showing is
+        then the target the next blur commits, which is the same silent
+        export shift the entity case was filed for.
+
+        Both directions are asserted because they fail differently and either
+        alone proves nothing: without the paint half a "went back to what it
+        was" assertion passes on a dialog that never refreshes at all, and
+        only the unpaint half fails against a `Blueprint` with no
+        `'remove-tile'` event. Driven through the model hooks rather than the
+        paint container - see FbeTestApi.createTiles for why there is no
+        gesture to drive here.
+
+        (-8, -8) is measured, not reasoned. The display is not a function of
+        the minimum corner alone: `serialize()` re-centres on the bounding
+        box, so a tile placed outside it moves `minCorner()` and
+        `computeExportCenter()` at once and the floored difference of the two
+        can come out unchanged. A tile at (-8, -8) reads 7 against the
+        chests' own 5; one at (-4, -4) - the obvious "just outside the
+        corner" choice, and where this test started - reads 5 as well, and so
+        passes whether or not either event fires.
+
+        Coordinates are the ones the loaded model uses, which are not the
+        ones TWO_CHESTS encodes: loading re-centres, putting the two chests
+        at (-3.5, -3.5) and (4.5, 4.5).
+    */
+    await loadBlueprint(page, TWO_CHESTS)
+    const align = await openBlueprintInfo(page)
+    await enableSnapToGrid(page, align)
+    const before = await gridPositionFields(page)
+    expect(before).toEqual({ x: '5', y: '5' })
+
+    await page.evaluate(() => window.__fbe_test.createTiles('concrete', [{ x: -8, y: -8 }]))
+    expect(await gridPositionFields(page)).toEqual({ x: '7', y: '7' })
+
+    await page.evaluate(() => window.__fbe_test.removeTiles([{ x: -8, y: -8 }]))
+    expect(await gridPositionFields(page)).toEqual(before)
+})

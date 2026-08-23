@@ -91,6 +91,7 @@ export interface BlueprintEvents {
     'create-entity': [entity: Entity]
     'remove-entity': []
     'create-tile': [tile: Tile]
+    'remove-tile': []
     name: []
     description: []
     icon: [index: 1 | 2 | 3 | 4]
@@ -719,6 +720,16 @@ class Blueprint extends EventEmitter<BlueprintEvents> {
 
         if (newValue) {
             this.emit('create-tile', newValue)
+        } else if (oldValue) {
+            /*
+                `else if`, not a second `if`: `createTiles` writing over a
+                tile that is already there hands this both values at once,
+                and that is a replacement rather than a removal - the cell
+                still holds a tile afterwards, so only 'create-tile' belongs
+                to it. A bare `if (!newValue)` would announce a removal on
+                every repaint of an already-tiled cell.
+            */
+            this.emit('remove-tile')
         }
     }
 

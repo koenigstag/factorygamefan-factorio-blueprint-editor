@@ -319,14 +319,19 @@ export class BlueprintAlignment extends Container {
             placing or deleting one that moves the blueprint's minimum
             corner while this dialog is open left the box showing its old
             value, and blurring it afterwards committed that stale reading
-            as a fresh target (#243 review). `'create-tile'` has no
-            `'remove-tile'` counterpart to hook - nothing in `Blueprint`
-            emits one - so a tile deletion can still go unnoticed here; entity
-            creation and removal are what the review measured.
+            as a fresh target (#243 review). Entity creation and removal are
+            what the review measured; tiles count towards that same minimum
+            (`footprintData()` reads both), and both halves of a tile edit are
+            reachable with this dialog open - opening the inventory does not
+            close it, so a tile can be painted and unpainted from the paint
+            container while the box is on screen. `'remove-tile'` exists for
+            this: `Blueprint` emitted only the create half, which left the
+            deleting half of exactly the same bug live and undetectable here.
         */
         this.onBlueprintChange('create-entity', () => this.refreshFromBlueprint())
         this.onBlueprintChange('remove-entity', () => this.refreshFromBlueprint())
         this.onBlueprintChange('create-tile', () => this.refreshFromBlueprint())
+        this.onBlueprintChange('remove-tile', () => this.refreshFromBlueprint())
     }
 
     private commitSize(): void {
